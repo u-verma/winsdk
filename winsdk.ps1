@@ -3,10 +3,10 @@
 WinSDK - A tool to manage SDKs on Windows.
 
 .DESCRIPTION
-Provides commands to install, use, list, and uninstall SDKs.
+Provides commands to install, use, list, current, and uninstall SDKs.
 
 .PARAMETER Action
-The action to perform: install, use, list, uninstall.
+The action to perform: install, use, list, current, uninstall.
 
 .PARAMETER SDK
 The SDK to manage (e.g., java).
@@ -22,7 +22,7 @@ winsdk install java 17
 [CmdletBinding()]
 param (
     [Parameter(Position = 0, Mandatory = $true)]
-    [ValidateSet('install', 'use', 'list', 'uninstall')]
+    [ValidateSet('install', 'use', 'list', 'current', 'uninstall')]
     [string]$Action,
 
     [Parameter(Position = 1, Mandatory = $true)]
@@ -42,8 +42,10 @@ switch ($SDK.ToLower()) {
         Import-Module "$ScriptDir\modules\Java\Install-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Switch-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\List-Java.psm1" -Force
+        Import-Module "$ScriptDir\modules\Java\Current-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Uninstall-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Get-JavaDownloadUrl.psm1" -Force
+        Import-Module "$ScriptDir\modules\Java\Get-AvailableJavaVersions.psm1" -Force
 
         switch ($Action.ToLower()) {
             'install' {
@@ -62,6 +64,9 @@ switch ($SDK.ToLower()) {
             }
             'list' {
                 List-Java
+            }
+            'current' {
+                Current-Java
             }
             'uninstall' {
                 if (-not $Version) {

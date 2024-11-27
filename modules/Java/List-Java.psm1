@@ -1,12 +1,13 @@
 function List-Java {
-    $JavaInstallDir = Get-InstallDirectory -SDKName 'Java'
-    $InstalledVersions = Get-ChildItem -Path $JavaInstallDir -Directory | ForEach-Object { $_.Name -replace 'jdk-', '' }
+    # Fetch available Java versions from Adoptium API
+    Write-Host "Fetching available Java versions..."
+    $AvailableVersions = Get-AvailableJavaVersions
 
-    if ($InstalledVersions.Count -eq 0) {
-        Write-Host "No Java versions are installed."
+    if ($AvailableVersions.Count -eq 0) {
+        Write-Host "No Java versions are available for installation."
     } else {
-        Write-Host "Installed Java versions:"
-        foreach ($Version in $InstalledVersions) {
+        Write-Host "Available Java versions for installation:"
+        foreach ($Version in $AvailableVersions) {
             Write-Host "- $Version"
         }
     }
