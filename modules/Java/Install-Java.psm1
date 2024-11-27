@@ -24,6 +24,9 @@ function Install-Java {
         return
     }
 
+    # URL-encode the ApiVersion to handle special characters like '+'
+    $EncodedApiVersion = [uri]::EscapeDataString("jdk-$ApiVersion")
+
     # Map Vendor Code to Vendor Name (we can hardcode 'eclipse' since we're only using 'adpt')
     $Vendor = "eclipse"
 
@@ -34,11 +37,8 @@ function Install-Java {
     $JVMImpl = "hotspot"
     $HeapSize = "normal"
 
-    # Prefix the version with 'jdk-' as required by the API
-    $ApiVersion = "jdk-$ApiVersion"
-
-    # Construct the API URL
-    $ApiUrl = "https://api.adoptium.net/v3/binary/version/$ApiVersion/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
+    # Construct the API URL with the encoded version
+    $ApiUrl = "https://api.adoptium.net/v3/binary/version/$EncodedApiVersion/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
 
     Write-Host "Fetching download information from: $ApiUrl"
 
@@ -46,9 +46,9 @@ function Install-Java {
         # Get the download information
         $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -ErrorAction Stop
 
-        if ($DownloadResponse.Count -gt 0) {
-            # The response is an array of assets; get the first asset
-            $Asset = $DownloadResponse[0]
+        if ($DownloadResponse.Count -gt 0 -and $DownloadResponse[0].Count -gt 0) {
+            # The response is an array of arrays; get the first binary
+            $Asset = $DownloadResponse[0][0]
             $DownloadUrl = $Asset.binary.package.link
         } else {
             Write-Error "No assets found for version $Version."
