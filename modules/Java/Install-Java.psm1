@@ -4,16 +4,16 @@ function Install-Java {
         [string]$Identifier
     )
 
-    # Parse the Identifier
-    $parts = $Identifier -split "-"
-    if ($parts.Length -ne 3) {
+    # Parse the Identifier using a regex
+    $pattern = '^(.*)-(.*)-(.*)$'
+    if ($Identifier -match $pattern) {
+        $Version = $matches[1]        # e.g., "21.0.5+11-LTS"
+        $Distribution = $matches[2]   # e.g., "hs"
+        $VendorCode = $matches[3]     # e.g., "adpt"
+    } else {
         Write-Error "Invalid Java version identifier. Please use the format <version>-<distribution>-<vendor> (e.g., 21.0.5+11-LTS-hs-adpt)."
         return
     }
-
-    $Version = $parts[0]             # e.g., "21.0.5+11-LTS"
-    $Distribution = $parts[1]        # e.g., "hs"
-    $VendorCode = $parts[2]          # e.g., "adpt"
 
     # Map Vendor Code to Vendor Name
     switch ($VendorCode.ToLower()) {
@@ -38,11 +38,11 @@ function Install-Java {
 
     try {
         # Get the download URL
-        $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -Method Head -MaximumRedirection 0 -ErrorAction SilentlyContinue
+        $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -Method Head -MaximumRedirection 0 -ErrorAction Stop
         $DownloadUrl = $DownloadResponse.Headers.Location
     }
     catch {
-        Write-Error "Failed to fetch binary for version $Version $($_)"
+        Write-Error "Failed to fetch binary for version $Version : $_"
         return
     }
 
