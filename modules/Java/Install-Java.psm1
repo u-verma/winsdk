@@ -40,30 +40,7 @@ function Install-Java {
     # Construct the API URL with the encoded version
     $ApiUrl = "https://api.adoptium.net/v3/binary/version/$EncodedApiVersion/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
 
-    Write-Host "Fetching download information from: $ApiUrl"
-
-    try {
-        # Get the download information
-        $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -ErrorAction Stop
-
-        if ($DownloadResponse.Count -gt 0 -and $DownloadResponse[0].Count -gt 0) {
-            # The response is an array of arrays; get the first binary
-            $Asset = $DownloadResponse[0][0]
-            $DownloadUrl = $Asset.binary.package.link
-        } else {
-            Write-Error "No assets found for version $Version."
-            return
-        }
-    }
-    catch {
-        Write-Error "Failed to fetch binary for version $Version : $_"
-        return
-    }
-
-    if (-not $DownloadUrl) {
-        Write-Error "No binary found for version $Version."
-        return
-    }
+    Write-Host "Downloading JDK from: $ApiUrl"
 
     # Prepare installation directory
     $InstallDirRoot = "$env:ProgramFiles\WinSDK\Java"
@@ -74,10 +51,9 @@ function Install-Java {
     $InstallDir = "$InstallDirRoot\jdk-$Version"
     $ZipFile = "$InstallDirRoot\jdk-$Version.zip"
 
-    Write-Host "Downloading JDK from $DownloadUrl..."
-
     try {
-        Invoke-WebRequest -Uri $DownloadUrl -OutFile $ZipFile -UseBasicParsing
+        # Download the binary data directly to the zip file
+        Invoke-WebRequest -Uri $ApiUrl -OutFile $ZipFile -UseBasicParsing -ErrorAction Stop
     }
     catch {
         Write-Error "Failed to download JDK: $_"
