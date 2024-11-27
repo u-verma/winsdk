@@ -1,39 +1,90 @@
 function Install-Java {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$Identifier  # e.g., "23.0.1+11-hs-adpt"
+        [string]$Identifier  # e.g., "21.0.5+11-LTS-hs-adpt"
     )
 
     # Parse the Identifier
     $parts = $Identifier -split "-"
     if ($parts.Length -ne 3) {
-        Write-Error "Invalid Java version identifier. Please use the format <version>-<distribution>-<vendor> (e.g., 23.0.1+11-hs-adpt)."
+        Write-Error "Invalid Java version identifier. Please use the format <version>-<distribution>-<vendor> (e.g., 21.0.5+11-LTS-hs-adpt)."
         return
     }
 
-    $Version = $parts[0]
-    $Distribution = $parts[1]
-    $VendorCode = $parts[2]
+    $Version = $parts[0]             # e.g., "21.0.5+11-LTS"
+    $Distribution = $parts[1]        # e.g., "hs"
+    $VendorCode = $parts[2]          # e.g., "adpt"
 
-    # Construct the download URL
-    $ApiUrl = "https://api.adoptium.net/v3/assets/version/$Version?architecture=x64&heap_size=normal&image_type=jdk&jvm_impl=hotspot&os=windows&vendor=eclipse"
+    # Map Vendor Code to Vendor Name
+    switch ($VendorCode.ToLower()) {
+        "adpt" { $Vendor = "eclipse" }
+        default {
+            Write-Error "Unsupported vendor code: $VendorCode"
+            return
+        }
+    }
+
+    # Set parameters
+    $OS = "windows"
+    $Arch = "x64"
+    $ImageType = "jdk"
+    $JVMImpl = "hotspot"
+    $HeapSize = "normal"
+
+    # Construct the API URL
+    $ApiUrl = "https://api.adoptium.net/v3/binary/version/$Version/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
+
+    Write-Host "Fetching download information from: $ApiUrl"
 
     try {
-        $AssetsResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing
-    } catch {
-        Write-Error "Failed to fetch assets for version $Version $_"
+        # Get the download URL
+        $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -Method Head -MaximumRedirection 0 -ErrorAction SilentlyContinue
+        $DownloadUrl = $DownloadResponse.Headers.Location
+    }
+    catch {
+        Write-Error "Failed to fetch binary for version $Version: $_"
         return
     }
 
-    if (-not $AssetsResponse) {
-        Write-Error "No assets found for version $Version."
+    if (-not $DownloadUrl) {
+        Write-Error "No binary found for version $Version."
         return
     }
 
-    # Select the appropriate binary
-    $Asset = $AssetsResponse[0][0]
-    $DownloadUrl = $Asset.binary.package.link
+    # Prepare installation directory
+    $InstallDirRoot = "$env:ProgramFiles\WinSDK\Java"
+    if (-not (Test-Path $InstallDirRoot)) {
+        New-Item -ItemType Directory -Path $InstallDirRoot | Out-Null
+    }
 
-    # Proceed with download and installation using $DownloadUrl
-    # ...
+    $InstallDir = "$InstallDirRoot\jdk-$Version"
+    $ZipFile = "$InstallDirRoot\jdk-$Version.zip"
+
+    Write-Host "Downloading JDK from $DownloadUrl..."
+
+    try {
+        Invoke-WebRequest -Uri $DownloadUrl -OutFile $ZipFile -UseBasicParsing
+    }
+    catch {
+        Write-Error "Failed to download JDK: $_"
+        return
+    }
+
+    Write-Host "Extracting JDK to $InstallDir..."
+
+    try {
+        Expand-Archive -Path $ZipFile -DestinationPath $InstallDir
+    }
+    catch {
+        Write-Error "Failed to extract JDK: $_"
+        return
+    }
+
+    # Remove the zip file
+    Remove-Item $ZipFile -Force
+
+    Write-Host "JDK version $Version installed successfully."
+
+    # Optionally, set this version as the current version
+    # Switch-Java -Version $Version
 }

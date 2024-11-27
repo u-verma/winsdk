@@ -53,10 +53,10 @@ switch ($SDK.ToLower()) {
         switch ($Action.ToLower()) {
             'install' {
                 if (-not $Version) {
-                    Write-Error "Please specify the Java version to install."
+                    Write-Error "Please specify the Java version identifier to install."
                     Exit 1
                 }
-                Install-Java -Version $Version
+                Install-Java -Identifier $Version
             }
             'use' {
                 if (-not $Version) {
