@@ -42,7 +42,7 @@ function Install-Java {
         $DownloadUrl = $DownloadResponse.Headers.Location
     }
     catch {
-        Write-Error "Failed to fetch binary for version $Version: $_"
+        Write-Error "Failed to fetch binary for version $Version $($_)"
         return
     }
 
