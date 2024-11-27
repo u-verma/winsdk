@@ -31,15 +31,26 @@ function Install-Java {
     $JVMImpl = "hotspot"
     $HeapSize = "normal"
 
+    # Prefix the version with 'jdk-' as required by the API
+    $ApiVersion = "jdk-$Version"
+
     # Construct the API URL
-    $ApiUrl = "https://api.adoptium.net/v3/binary/version/$Version/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
+    $ApiUrl = "https://api.adoptium.net/v3/binary/version/$ApiVersion/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
 
     Write-Host "Fetching download information from: $ApiUrl"
 
     try {
-        # Get the download URL
-        $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -Method Head -MaximumRedirection 0 -ErrorAction Stop
-        $DownloadUrl = $DownloadResponse.Headers.Location
+        # Get the download information
+        $DownloadResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -ErrorAction Stop
+
+        if ($DownloadResponse.Count -gt 0) {
+            # The response is an array of assets; get the first asset
+            $Asset = $DownloadResponse[0]
+            $DownloadUrl = $Asset.binary.package.link
+        } else {
+            Write-Error "No assets found for version $Version."
+            return
+        }
     }
     catch {
         Write-Error "Failed to fetch binary for version $Version : $_"
