@@ -5,7 +5,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 
 # Variables
 $InstallDir = "C:\Program Files\WinSDK"
-$RepoZipUrl = "https://github.com/yourusername/winsdk/archive/refs/heads/main.zip"
+$RepoZipUrl = "https://github.com/u-verma/winsdk/archive/refs/heads/main.zip"
 $TempZip = "$env:TEMP\winsdk.zip"
 
 # Download the repository
