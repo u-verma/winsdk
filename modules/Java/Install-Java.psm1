@@ -56,7 +56,7 @@ function Install-Java {
         }
     }
     catch {
-        Write-Error "Failed to fetch binary for version $Version: $_"
+        Write-Error "Failed to fetch binary for version $Version : $_"
         return
     }
 
