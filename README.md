@@ -57,7 +57,7 @@ WinSDK is a Windows SDK manager that allows you to install, manage, and switch b
 Execute the following command to install WinSDK:
 
 ```bash
-iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/u-verma/winsdk/main/install.ps1'))
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/u-verma/winsdk/refs/heads/main/install.ps1'))
 ```
 
 ### Step 3: Restart Your Command Prompt or PowerShell
