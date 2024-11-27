@@ -1,42 +1,39 @@
 function Install-Java {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$Version
+        [string]$Identifier  # e.g., "23.0.1+11-hs-adpt"
     )
 
-    # Ensure administrator privileges
-    Ensure-Administrator
-
-    $JavaInstallDir = Get-InstallDirectory -SDKName 'Java'
-    $JavaVersionDir = "$JavaInstallDir\jdk-$Version"
-
-    if (Test-Path $JavaVersionDir) {
-        Write-Host "Java version $Version is already installed."
+    # Parse the Identifier
+    $parts = $Identifier -split "-"
+    if ($parts.Length -ne 3) {
+        Write-Error "Invalid Java version identifier. Please use the format <version>-<distribution>-<vendor> (e.g., 23.0.1+11-hs-adpt)."
         return
     }
 
-    # Get download URL
-    $DownloadUrl = Get-JavaDownloadUrl -Version $Version
-    if (-not $DownloadUrl) {
-        Write-Error "Failed to get download URL for Java version $Version."
+    $Version = $parts[0]
+    $Distribution = $parts[1]
+    $VendorCode = $parts[2]
+
+    # Construct the download URL
+    $ApiUrl = "https://api.adoptium.net/v3/assets/version/$Version?architecture=x64&heap_size=normal&image_type=jdk&jvm_impl=hotspot&os=windows&vendor=eclipse"
+
+    try {
+        $AssetsResponse = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing
+    } catch {
+        Write-Error "Failed to fetch assets for version $Version $_"
         return
     }
 
-    # Download and install
-    $TempZip = "$env:TEMP\jdk-$Version.zip"
-    Write-Host "Downloading Java $Version..."
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZip -UseBasicParsing
-
-    Write-Host "Installing Java $Version..."
-    Expand-Archive -Path $TempZip -DestinationPath $JavaInstallDir -Force
-
-    # Rename extracted folder if necessary
-    $ExtractedDir = Get-ChildItem -Path $JavaInstallDir -Directory | Where-Object { $_.Name -match "jdk-*$Version*" } | Select-Object -First 1
-    if ($ExtractedDir -and ($ExtractedDir.Name -ne "jdk-$Version")) {
-        Rename-Item -Path $ExtractedDir.FullName -NewName "jdk-$Version"
+    if (-not $AssetsResponse) {
+        Write-Error "No assets found for version $Version."
+        return
     }
 
-    Remove-Item $TempZip -Force
+    # Select the appropriate binary
+    $Asset = $AssetsResponse[0][0]
+    $DownloadUrl = $Asset.binary.package.link
 
-    Write-Host "Java $Version installed successfully."
+    # Proceed with download and installation using $DownloadUrl
+    # ...
 }
