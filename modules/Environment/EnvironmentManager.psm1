@@ -7,8 +7,6 @@ function Update-EnvironmentVariables {
         [string]$SDKPath
     )
 
-    Ensure-Administrator
-
     $EnvVariableName = ($SDKName -replace '\s', '_').ToUpper() + "_HOME"
     [Environment]::SetEnvironmentVariable($EnvVariableName, $SDKPath, 'Machine')
 

@@ -76,5 +76,5 @@ function Install-Java {
     Write-Host "JDK version $Version installed successfully."
 
     # Optionally, set this version as the current version
-    # Switch-Java -Version $Version
+    Switch-Java -Version $Version
 }
