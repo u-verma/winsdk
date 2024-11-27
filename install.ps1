@@ -1,11 +1,5 @@
 # PowerShell script to install WinSDK
 
-# Ensure script is running as Administrator
-if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrator')) {
-    Write-Error "This script must be run as Administrator."
-    Exit 1
-}
-
 # Set execution policy to allow script execution temporarily
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
