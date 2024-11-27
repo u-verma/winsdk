@@ -4,25 +4,28 @@ function Install-Java {
         [string]$Identifier
     )
 
-    # Parse the Identifier using a regex
-    $pattern = '^(.*)-(.*)-(.*)$'
-    if ($Identifier -match $pattern) {
-        $Version = $matches[1]        # e.g., "21.0.5+11-LTS"
-        $Distribution = $matches[2]   # e.g., "hs"
-        $VendorCode = $matches[3]     # e.g., "adpt"
+    # Remove '-LTS-hs-adpt' or '-hs-adpt' from the identifier to get the version
+    # Capture the version part without '-LTS' for API compatibility
+    if ($Identifier -match '^(.*?)(-LTS)?-hs-adpt$') {
+        $VersionWithLTS = $matches[1]       # e.g., "21.0.5+11" or "21.0.5+11-LTS"
+        $HasLTS = $matches[2] -eq '-LTS'    # True if '-LTS' is present
+
+        # For API, we need the version without '-LTS'
+        $ApiVersion = $VersionWithLTS -replace '-LTS$', ''
+
+        # For user messages and installation paths, we use the original version
+        if ($HasLTS) {
+            $Version = "$VersionWithLTS-LTS"
+        } else {
+            $Version = $VersionWithLTS
+        }
     } else {
-        Write-Error "Invalid Java version identifier. Please use the format <version>-<distribution>-<vendor> (e.g., 21.0.5+11-LTS-hs-adpt)."
+        Write-Error "Invalid Java version identifier. Please use the format <version>[-LTS]-hs-adpt (e.g., 21.0.5+11-LTS-hs-adpt or 23.0.1+11-hs-adpt)."
         return
     }
 
-    # Map Vendor Code to Vendor Name
-    switch ($VendorCode.ToLower()) {
-        "adpt" { $Vendor = "eclipse" }
-        default {
-            Write-Error "Unsupported vendor code: $VendorCode"
-            return
-        }
-    }
+    # Map Vendor Code to Vendor Name (we can hardcode 'eclipse' since we're only using 'adpt')
+    $Vendor = "eclipse"
 
     # Set parameters
     $OS = "windows"
@@ -32,7 +35,7 @@ function Install-Java {
     $HeapSize = "normal"
 
     # Prefix the version with 'jdk-' as required by the API
-    $ApiVersion = "jdk-$Version"
+    $ApiVersion = "jdk-$ApiVersion"
 
     # Construct the API URL
     $ApiUrl = "https://api.adoptium.net/v3/binary/version/$ApiVersion/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
@@ -53,7 +56,7 @@ function Install-Java {
         }
     }
     catch {
-        Write-Error "Failed to fetch binary for version $Version : $_"
+        Write-Error "Failed to fetch binary for version $Version: $_"
         return
     }
 
