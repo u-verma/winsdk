@@ -1,7 +1,7 @@
 function Install-Java {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$Identifier  # e.g., "21.0.5+11-LTS-hs-adpt"
+        [string]$Identifier
     )
 
     # Parse the Identifier
