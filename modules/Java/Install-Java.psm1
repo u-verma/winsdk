@@ -68,9 +68,6 @@ function Install-Java {
 
         # Create a temporary extraction directory
         $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
-        if (Test-Path $TempExtractPath) {
-            Remove-Item -Path $TempExtractPath -Recurse -Force
-        }
         New-Item -ItemType Directory -Path $TempExtractPath | Out-Null
 
         # Extract the zip file to the temporary directory
@@ -98,8 +95,9 @@ function Install-Java {
     # Remove the zip file
     Remove-Item $ZipFile -Force
 
-    Write-Host "JDK version $Version installed successfully."
+    Write-Host "Seeting JAVA_HOME environment variable. Making this Default JDK."
 
     # Optionally, set this version as the current version
     Switch-Java -Version $Version
+    Write-Host "JDK version $Version installed successfully."
 }
