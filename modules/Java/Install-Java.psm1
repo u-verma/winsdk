@@ -65,37 +65,41 @@ function Install-Java {
     try {
         # Load the necessary assembly for System.IO.Compression
         Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-        # Create a temporary extraction directory
+    
+        # Extract the zip file to the temporary directory
         $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
         if (Test-Path $TempExtractPath) {
             Remove-Item -Path $TempExtractPath -Recurse -Force
         }
         New-Item -ItemType Directory -Path $TempExtractPath | Out-Null
-
-        # Extract the zip file to the temporary directory
+    
         [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipFile, $TempExtractPath)
-
+    
         # Get the inner directory (e.g., 'jdk-21.0.5+11')
         $InnerDir = Get-ChildItem -Path $TempExtractPath | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-
+    
         if ($null -eq $InnerDir) {
             Write-Error "Extraction failed: Inner directory not found."
             return
         }
-
-        # Move the inner directory's contents to the installation directory
-        Get-ChildItem -Path $InnerDir.FullName | ForEach-Object {
-            Move-Item -Path $_.FullName -Destination $InstallDir -Force
+    
+        # Remove the installation directory if it exists
+        if (Test-Path $InstallDir) {
+            Remove-Item -Path $InstallDir -Recurse -Force
         }
-
-        # Remove the temporary extraction directory
-        Remove-Item -Path $TempExtractPath -Recurse -Force
+    
+        # Rename the inner directory to the installation directory
+        Rename-Item -Path $InnerDir.FullName -NewName $InstallDir
+    
+        # Remove the temporary extraction directory if it's still there
+        if (Test-Path $TempExtractPath) {
+            Remove-Item -Path $TempExtractPath -Recurse -Force
+        }
     }
     catch {
         Write-Error "Failed to extract JDK: $_"
         return
-    }
+    }    
 
     # Remove the zip file
     Remove-Item $ZipFile -Force
