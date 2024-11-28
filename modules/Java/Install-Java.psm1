@@ -109,5 +109,7 @@ function Install-Java {
 
     # Optionally, set this version as the current version
     Switch-Java -Version $Version
+    Write-Host "JAVA_HOME is set to $env:JAVA_HOME"
     Write-Host "JDK version $Version installed successfully."
+    Write-Host "Please restart your terminal to apply the changes."
 }
