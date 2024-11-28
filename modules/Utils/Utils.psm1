@@ -1,10 +1,3 @@
-function Ensure-Administrator {
-    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrator')) {
-        Write-Error "This action requires administrative privileges. Please run PowerShell as Administrator."
-        Exit 1
-    }
-}
-
 function Get-InstallDirectory {
     param (
         [Parameter(Mandatory = $true)]

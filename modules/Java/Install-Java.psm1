@@ -105,11 +105,10 @@ function Install-Java {
     # Remove the zip file
     Remove-Item $ZipFile -Force
 
-    Write-Host "Setting JAVA_HOME environment variable. Making this Default JDK."
+    Write-Host "Setting JAVA_HOME environment variable. Making $Version as Default JDK."
 
     # Optionally, set this version as the current version
-    Switch-Java -Version $Version
-    Write-Host "JAVA_HOME is set to $env:JAVA_HOME"
+    Switch-Java -Version 
     Write-Host "JDK version $Version installed successfully."
     Write-Host "Please restart your terminal to apply the changes."
 }

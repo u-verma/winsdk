@@ -4,8 +4,6 @@ function Uninstall-Java {
         [string]$Version
     )
 
-    Ensure-Administrator
-
     $JavaInstallDir = Get-InstallDirectory -SDKName 'Java'
     $JavaVersionDir = "$JavaInstallDir\jdk-$Version"
 
