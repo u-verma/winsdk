@@ -7,7 +7,7 @@ function Install-Java {
     # Remove '-LTS-hs-adpt' or '-hs-adpt' from the identifier to get the version
     # Capture the version part without '-LTS' for API compatibility
     if ($Identifier -match '^(.*?)(-LTS)?-hs-adpt$') {
-        $VersionWithLTS = $matches[1]       # e.g., "21.0.5+11" or "21.0.5+11-LTS"
+        $VersionWithLTS = $matches[1]       # e.g., "21.0.5+11" or "23.0.1+11"
         $HasLTS = $matches[2] -eq '-LTS'    # True if '-LTS' is present
 
         # For API, we need the version without '-LTS'
@@ -27,15 +27,13 @@ function Install-Java {
     # URL-encode the ApiVersion to handle special characters like '+'
     $EncodedApiVersion = [uri]::EscapeDataString("jdk-$ApiVersion")
 
-    # Map Vendor Code to Vendor Name (we can hardcode 'eclipse' since we're only using 'adpt')
-    $Vendor = "eclipse"
-
     # Set parameters
     $OS = "windows"
     $Arch = "x64"
     $ImageType = "jdk"
     $JVMImpl = "hotspot"
     $HeapSize = "normal"
+    $Vendor = "eclipse"
 
     # Construct the API URL with the encoded version
     $ApiUrl = "https://api.adoptium.net/v3/binary/version/$EncodedApiVersion/$OS/$Arch/$ImageType/$JVMImpl/$HeapSize/$Vendor"
@@ -63,7 +61,37 @@ function Install-Java {
     Write-Host "Extracting JDK to $InstallDir..."
 
     try {
-        Expand-Archive -Path $ZipFile -DestinationPath $InstallDir
+        # Load the necessary assembly for System.IO.Compression
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+        # Create the installation directory if it doesn't exist
+        if (-not (Test-Path $InstallDir)) {
+            New-Item -ItemType Directory -Path $InstallDir | Out-Null
+        }
+
+        # Extract the zip file to the installation directory without the top-level directory
+        $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
+        if (Test-Path $TempExtractPath) {
+            Remove-Item -Path $TempExtractPath -Recurse -Force
+        }
+        New-Item -ItemType Directory -Path $TempExtractPath | Out-Null
+
+        # Extract the zip file to the temporary directory
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipFile, $TempExtractPath)
+
+        # Get the inner directory (e.g., 'jdk-21.0.5+11')
+        $InnerDir = Get-ChildItem -Path $TempExtractPath | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+
+        if ($null -eq $InnerDir) {
+            Write-Error "Extraction failed: Inner directory not found."
+            return
+        }
+
+        # Move the contents of the inner directory to the installation directory
+        Move-Item -Path (Join-Path $InnerDir.FullName, '*') -Destination $InstallDir -Force
+
+        # Remove the temporary extraction directory
+        Remove-Item -Path $TempExtractPath -Recurse -Force
     }
     catch {
         Write-Error "Failed to extract JDK: $_"
