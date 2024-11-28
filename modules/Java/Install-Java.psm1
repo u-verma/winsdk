@@ -22,7 +22,7 @@ function Install-Java {
             $Version += '-hs-adpt'
         }
     } else {
-        Write-Error "Invalid Java version identifier. Please use the format <version>[-LTS][-hs-adpt] (e.g., 21.0.5+11-LTS, 23.0.1+11-hs-adpt, or 18.0.1)."
+        Write-Error "Invalid Java version identifier. Please use the format <version>[-LTS][-hs-adpt] (e.g., 21.0.5+11-LTS, 23+37-hs-adpt, or 18.0.1)."
         return
     }
 
@@ -68,6 +68,9 @@ function Install-Java {
 
         # Create a temporary extraction directory
         $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
+        if (Test-Path $TempExtractPath) {
+            Remove-Item -Path $TempExtractPath -Recurse -Force
+        }
         New-Item -ItemType Directory -Path $TempExtractPath | Out-Null
 
         # Extract the zip file to the temporary directory
@@ -81,8 +84,10 @@ function Install-Java {
             return
         }
 
-        # Move the contents of the inner directory to the installation directory
-        Move-Item -Path (Join-Path $InnerDir.FullName '*') -Destination $InstallDir -Force
+        # Move the inner directory's contents to the installation directory
+        Get-ChildItem -Path $InnerDir.FullName | ForEach-Object {
+            Move-Item -Path $_.FullName -Destination $InstallDir -Force
+        }
 
         # Remove the temporary extraction directory
         Remove-Item -Path $TempExtractPath -Recurse -Force
@@ -95,7 +100,7 @@ function Install-Java {
     # Remove the zip file
     Remove-Item $ZipFile -Force
 
-    Write-Host "Seeting JAVA_HOME environment variable. Making this Default JDK."
+    Write-Host "Setting JAVA_HOME environment variable. Making this Default JDK."
 
     # Optionally, set this version as the current version
     Switch-Java -Version $Version
