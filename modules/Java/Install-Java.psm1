@@ -69,7 +69,7 @@ function Install-Java {
             New-Item -ItemType Directory -Path $InstallDir | Out-Null
         }
 
-        # Extract the zip file to the installation directory without the top-level directory
+        # Create a temporary extraction directory
         $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
         if (Test-Path $TempExtractPath) {
             Remove-Item -Path $TempExtractPath -Recurse -Force
@@ -88,7 +88,7 @@ function Install-Java {
         }
 
         # Move the contents of the inner directory to the installation directory
-        Move-Item -Path (Join-Path $InnerDir.FullName, '*') -Destination $InstallDir -Force
+        Move-Item -Path (Join-Path $InnerDir.FullName '*') -Destination $InstallDir -Force
 
         # Remove the temporary extraction directory
         Remove-Item -Path $TempExtractPath -Recurse -Force
