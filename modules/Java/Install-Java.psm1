@@ -65,41 +65,42 @@ function Install-Java {
     try {
         # Load the necessary assembly for System.IO.Compression
         Add-Type -AssemblyName System.IO.Compression.FileSystem
-    
-        # Extract the zip file to the temporary directory
+
+        # Create a temporary extraction directory
         $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
         if (Test-Path $TempExtractPath) {
             Remove-Item -Path $TempExtractPath -Recurse -Force
         }
         New-Item -ItemType Directory -Path $TempExtractPath | Out-Null
-    
+
+        # Extract the zip file to the temporary directory
         [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipFile, $TempExtractPath)
-    
+
         # Get the inner directory (e.g., 'jdk-21.0.5+11')
         $InnerDir = Get-ChildItem -Path $TempExtractPath | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-    
+
         if ($null -eq $InnerDir) {
             Write-Error "Extraction failed: Inner directory not found."
             return
         }
-    
+
         # Remove the installation directory if it exists
         if (Test-Path $InstallDir) {
             Remove-Item -Path $InstallDir -Recurse -Force
         }
-    
-        # Rename the inner directory to the installation directory
-        Rename-Item -Path $InnerDir.FullName -NewName $InstallDir
-    
-        # Remove the temporary extraction directory if it's still there
-        if (Test-Path $TempExtractPath) {
-            Remove-Item -Path $TempExtractPath -Recurse -Force
-        }
+
+        # Move the inner directory to the installation directory
+        Move-Item -Path $InnerDir.FullName -Destination $InstallDir
     }
     catch {
         Write-Error "Failed to extract JDK: $_"
         return
-    }    
+    }
+
+    # Remove the temporary extraction directory
+    if (Test-Path $TempExtractPath) {
+        Remove-Item -Path $TempExtractPath -Recurse -Force
+    }
 
     # Remove the zip file
     Remove-Item $ZipFile -Force
