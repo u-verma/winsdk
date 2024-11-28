@@ -4,23 +4,25 @@ function Install-Java {
         [string]$Identifier
     )
 
-    # Remove '-LTS-hs-adpt' or '-hs-adpt' from the identifier to get the version
-    # Capture the version part without '-LTS' for API compatibility
-    if ($Identifier -match '^(.*?)(-LTS)?-hs-adpt$') {
-        $VersionWithLTS = $matches[1]       # e.g., "21.0.5+11" or "23.0.1+11"
+    # Updated regex pattern to match various identifier formats
+    if ($Identifier -match '^(.*?)(-LTS)?(-hs-adpt)?$') {
+        $VersionWithLTS = $matches[1]       # e.g., "21.0.5+11", "23+37", "18.0.1"
         $HasLTS = $matches[2] -eq '-LTS'    # True if '-LTS' is present
+        $HasHSAdpt = $matches[3] -eq '-hs-adpt'  # True if '-hs-adpt' is present
 
-        # For API, we need the version without '-LTS'
-        $ApiVersion = $VersionWithLTS -replace '-LTS$', ''
+        # For API, we need the version without '-LTS' and '-hs-adpt'
+        $ApiVersion = $VersionWithLTS
 
         # For user messages and installation paths, we use the original version
+        $Version = $VersionWithLTS
         if ($HasLTS) {
-            $Version = "$VersionWithLTS-LTS"
-        } else {
-            $Version = $VersionWithLTS
+            $Version += '-LTS'
+        }
+        if ($HasHSAdpt) {
+            $Version += '-hs-adpt'
         }
     } else {
-        Write-Error "Invalid Java version identifier. Please use the format <version>[-LTS]-hs-adpt (e.g., 21.0.5+11-LTS-hs-adpt or 23.0.1+11-hs-adpt)."
+        Write-Error "Invalid Java version identifier. Please use the format <version>[-LTS][-hs-adpt] (e.g., 21.0.5+11-LTS, 23.0.1+11-hs-adpt, or 18.0.1)."
         return
     }
 
@@ -63,11 +65,6 @@ function Install-Java {
     try {
         # Load the necessary assembly for System.IO.Compression
         Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-        # Create the installation directory if it doesn't exist
-        if (-not (Test-Path $InstallDir)) {
-            New-Item -ItemType Directory -Path $InstallDir | Out-Null
-        }
 
         # Create a temporary extraction directory
         $TempExtractPath = Join-Path $InstallDirRoot "temp_extraction"
