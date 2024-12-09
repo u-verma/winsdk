@@ -86,13 +86,22 @@ switch ($SDK.ToLower()) {
     }
     'winsdk' {
         Import-Module "$ScriptDir\Uninstall-WinSDK.psm1" -Force
-        if ($Action.ToLower() -ne 'uninstall') {
-            Write-Error "The only supported action for 'winsdk' is 'uninstall'."
-            Exit 1
+        switch ($Action.ToLower()) {
+            'update' {
+                # Perform update by uninstalling and reinstalling
+                Write-Host "Updating WinSDK..."
+                Uninstall-WinSDK
+                iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/u-verma/winsdk/refs/heads/main/install.ps1'))
+                Write-Host "WinSDK has been successfully updated."
+            }
+            'uninstall' {
+                Uninstall-WinSDK
+            }
+            default {
+                Write-Error "Unsupported action for 'winsdk'. Only 'update' and 'uninstall' are supported."
+                Exit 1
+            }
         }
-
-        # Perform self-uninstallation
-        Uninstall-WinSDK
     }
     default {
         Write-Error "Unsupported SDK: $SDK"
