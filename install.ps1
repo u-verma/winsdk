@@ -77,22 +77,23 @@ try {
     Set-EnvironmentVariable -VariableName "WINSDK_HOME" -Value $InstallDir -Scope "User"
     Set-EnvironmentVariable -VariableName "WINSDK_HOME" -Value $InstallDir -Scope "Machine"
 
-    # Add InstallDir to PATH for both User and Machine
-    foreach ($Scope in @('User', 'Machine')) {
-        $OldPath = [Environment]::GetEnvironmentVariable('Path', $Scope)
-        if (-not $OldPath) {
-            $OldPath = ""
-        }
-
-        # Add InstallDir to Path if not already present
-        if ($OldPath -notlike "*$InstallDir*") {
-            $NewPath = ($OldPath -split ';' + $InstallDir) -join ';'
-            Set-EnvironmentVariable -VariableName "Path" -Value $NewPath -Scope $Scope
-            Write-Host "Updated PATH for $Scope: $NewPath"
-        } else {
-            Write-Host "PATH already contains $InstallDir for $Scope."
-        }
+   # Add InstallDir to PATH for both User and Machine
+foreach ($Scope in @('User', 'Machine')) {
+    $OldPath = [Environment]::GetEnvironmentVariable('Path', $Scope)
+    if (-not $OldPath) {
+        $OldPath = ""
     }
+
+    # Add InstallDir to Path if not already present
+    if ($OldPath -notlike "*$InstallDir*") {
+        $NewPath = ($OldPath -split ';' + $InstallDir) -join ';'
+        Set-EnvironmentVariable -VariableName "Path" -Value $NewPath -Scope $Scope
+        Write-Host "Updated PATH for $Scope : ${NewPath}"
+    } else {
+        Write-Host "PATH already contains $InstallDir for $Scope."
+    }
+}
+
 
     Write-Host "WinSDK has been installed successfully."
     Write-Host "Please close and reopen your command prompt or PowerShell to start using the 'winsdk' command."
