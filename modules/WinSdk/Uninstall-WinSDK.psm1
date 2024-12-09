@@ -9,10 +9,6 @@ Removes all files related to WinSDK and cleans up environment variables at both 
 Skips the confirmation prompt if specified.
 #>
 
-# Import modules
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$ScriptDir\../\Environment\Remove-SDKEnvironment.psm1" -Force
-
 function Uninstall-WinSDK {
     [CmdletBinding()]
     param (
@@ -21,31 +17,41 @@ function Uninstall-WinSDK {
 
     Write-Host "Starting WinSDK uninstallation for both user and machine..."
 
-    # Confirmation prompt
-    if (-not $Force) {
-        $confirmation = Read-Host "Are you sure you want to uninstall WinSDK? (Y/N)"
-        if ($confirmation -ne 'Y' -and $confirmation -ne 'y') {
-            Write-Host "Uninstallation canceled."
-            Exit 0
-        }
-    }
-
     try {
+        # Confirmation prompt
+        if (-not $Force) {
+            $confirmation = Read-Host "Are you sure you want to uninstall WinSDK? (Y/N)"
+            if ($confirmation -ne 'Y' -and $confirmation -ne 'y') {
+                Write-Host "Uninstallation canceled."
+                Exit 0
+            }
+        }
+
         # Handle both User and Machine scopes
         $Scopes = @("User", "Machine")
         foreach ($Scope in $Scopes) {
             Write-Host "Processing scope: $Scope"
 
-            # Remove WINSDK_HOME environment variable and PATH entries
-            Remove-SDKEnvironment -SDKName "winsdk" -Scope $Scope
-
-            # Path where WinSDK is installed
+            # Determine SDKPath from WINSDK_HOME environment variable
             $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", $Scope)
 
             if (-not $SDKPath) {
-                Write-Warning "WINSDK_HOME is not set for $Scope. Falling back to default path."
-                $SDKPath = "C:\Program Files\WinSDK"
+                Write-Warning "WINSDK_HOME is not set for $Scope. Skipping SDK removal for $Scope."
+                continue
             }
+
+            # Import the Remove-SDKEnvironment module dynamically
+            $RemoveEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Remove-SDKEnvironment.psm1"
+            if (Test-Path $RemoveEnvironmentModulePath) {
+                Import-Module $RemoveEnvironmentModulePath -Force
+            }
+            else {
+                Write-Warning "Remove-SDKEnvironment module not found in $RemoveEnvironmentModulePath. Skipping environment cleanup for $Scope."
+                continue
+            }
+
+            # Remove WINSDK_HOME environment variable and PATH entries
+            Remove-SDKEnvironment -SDKName "winsdk" -Scope $Scope
 
             # Remove SDK files
             if (Test-Path $SDKPath) {
