@@ -1,11 +1,17 @@
+<#
+.SYNOPSIS
+Uninstalls the WinSDK for both user and machine scopes.
+
+.DESCRIPTION
+Removes all files related to WinSDK and cleans up environment variables at both user and machine levels.
+
+#>
+
 function Uninstall-WinSDK {
+    [CmdletBinding()]
     param ()
 
-    # Ensure script is running as Administrator
-    if (-not (Test-IsAdministrator)) {
-        Write-Error "This action requires administrative privileges. Please run the command prompt or PowerShell as Administrator."
-        Exit 1
-    }
+    Write-Host "Starting WinSDK uninstallation for both user and machine..."
 
     # Confirmation prompt
     $confirmation = Read-Host "Are you sure you want to uninstall WinSDK? (Y/N)"
@@ -14,36 +20,44 @@ function Uninstall-WinSDK {
         Exit 0
     }
 
-    # Variables
-    $InstallDir = "C:\Program Files\WinSDK"
+    try {
+        # Handle both User and Machine scopes
+        $Scopes = @("User", "Machine")
+        foreach ($Scope in $Scopes) {
+            Write-Host "Processing scope: $Scope"
 
-    # Remove WinSDK installation directory
-    if (Test-Path $InstallDir) {
-        Write-Host "Removing WinSDK installation directory..."
-        try {
-            Remove-Item -Path $InstallDir -Recurse -Force -ErrorAction Stop
-        } catch {
-            Write-Error "Failed to remove installation directory: $_"
-            Exit 1
+            # Path where WinSDK is installed
+            $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", $Scope)
+
+            if (-not $SDKPath) {
+                Write-Warning "WINSDK_HOME is not set for $Scope. Skipping file cleanup."
+            } else {
+                Write-Host "Removing files from $SDKPath for $Scope..."
+                if (Test-Path $SDKPath) {
+                    Remove-Item -Recurse -Force -Path $SDKPath
+                    Write-Host "Files removed successfully for $Scope."
+                } else {
+                    Write-Warning "WinSDK directory does not exist at $SDKPath for $Scope."
+                }
+            }
+
+            # Remove WINSDK_HOME environment variable
+            Write-Host "Removing WINSDK_HOME environment variable for $Scope..."
+            [Environment]::SetEnvironmentVariable("WINSDK_HOME", $null, $Scope)
+
+            # Clean up PATH environment variable
+            Write-Host "Cleaning up PATH environment variable for $Scope..."
+            $OldPath = [Environment]::GetEnvironmentVariable("Path", $Scope)
+            if ($OldPath) {
+                $PathEntries = $OldPath -split ';' | Where-Object { $_ -notmatch "\\winsdk\\.*\\bin" }
+                $NewPath = ($PathEntries | Select-Object -Unique) -join ';'
+                [Environment]::SetEnvironmentVariable("Path", $NewPath, $Scope)
+                Write-Host "PATH cleaned successfully for $Scope."
+            }
         }
-    } else {
-        Write-Host "WinSDK installation directory not found."
+
+        Write-Host "WinSDK uninstallation completed successfully for both user and machine scopes."
+    } catch {
+        Write-Error "An error occurred during WinSDK uninstallation: $_"
     }
-
-    # Remove WinSDK from the system Path
-    Write-Host "Updating system Path..."
-    $CurrentPath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
-    $NewPathEntries = $CurrentPath -split ';' | Where-Object { $_ -and ($_ -notmatch [Regex]::Escape($InstallDir)) } | ForEach-Object { $_.Trim() }
-    $NewPath = ($NewPathEntries | Select-Object -Unique) -join ';'
-    [Environment]::SetEnvironmentVariable('Path', $NewPath, 'Machine')
-
-    # Remove SDK-specific environment variables (e.g., JAVA_HOME)
-    $EnvVariables = @('JAVA_HOME') # Add other variables if needed
-    foreach ($EnvVar in $EnvVariables) {
-        Write-Host "Removing environment variable: $EnvVar"
-        [Environment]::SetEnvironmentVariable($EnvVar, $null, 'Machine')
-    }
-
-    Write-Host "WinSDK has been uninstalled successfully."
-    Write-Host "Please restart your computer to apply the changes."
 }

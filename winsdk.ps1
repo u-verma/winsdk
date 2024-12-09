@@ -69,7 +69,7 @@ switch ($SDK.ToLower()) {
                 List-Java
             }
             'current' {
-                Current-Java
+                Current-JavaVersion
             }
             'uninstall' {
                 if (-not $Version) {
