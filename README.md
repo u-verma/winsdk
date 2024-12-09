@@ -71,10 +71,10 @@ After installation, close and reopen your command prompt or PowerShell to apply 
 - WinSDK provides a simple command-line interface. The general syntax is:
 
 ```bash
-winsdk <action> <sdk> [version]
+winsdk <action> <sdk> 
 ```
 
-- `<action>`: `install`, `use`, `list`, or `uninstall`.
+- `<action>`: `install`, `use`, `list`, `current`, or `uninstall`.
 
 - `<sdk>`: The name of the SDK (e.g., `java`).
 
@@ -86,27 +86,27 @@ winsdk <action> <sdk> [version]
 - To install a specific version of an SDK:
 
 ```bash
-winsdk install java 17
+winsdk install java 21.0.5
 ```
-- Installs Java version 17.
+- Installs Java version 21.
 
 ### Switch SDK Version
 - To switch to a specific version of an SDK:
 
 ```bash
-winsdk use java 17
+winsdk use java 21.0.5
 ```
-- Sets Java version 17 as the active version.
+- Sets Java version 21 as the active version.
 - Updates `JAVA_HOME` and `Path` environment variables.
 - `<Note>`: The specified version must be installed.
 
 ### List Installed SDK Versions
-- To list all installed versions of an SDK:
+- To list all available versions of an SDK from remote:
 
 ```bash
 winsdk list java
 ```
-- Displays all installed Java versions.
+- Displays all available versions Java versions.
 
 ### Uninstall an SDK
 - To uninstall a specific version of an SDK:
