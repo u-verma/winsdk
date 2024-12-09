@@ -19,6 +19,39 @@ function Test-IsAdministrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+# Function to clean up temporary files and directories
+function Cleanup-WinSDKInstallation {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$InstallDir,
+        [Parameter(Mandatory = $true)]
+        [string]$TempZip
+    )
+
+    Write-Host "Cleaning up temporary files and partially installed directories..."
+    try {
+        # Remove the temporary zip file
+        if (Test-Path $TempZip) {
+            Remove-Item $TempZip -Force
+            Write-Host "Removed temporary zip file: $TempZip"
+        }
+
+        # Remove extracted temporary directories
+        if (Test-Path "$env:TEMP\winsdk-*") {
+            Remove-Item -Path "$env:TEMP\winsdk-*" -Recurse -Force
+            Write-Host "Removed temporary extracted directories."
+        }
+
+        # Remove partially installed directory
+        if (Test-Path $InstallDir) {
+            Remove-Item -Recurse -Force -Path $InstallDir
+            Write-Host "Removed partially installed directory: $InstallDir"
+        }
+    } catch {
+        Write-Warning "An error occurred during cleanup: $_"
+    }
+}
+
 try {
     # Check for admin privileges
     if (-not (Test-IsAdministrator)) {
@@ -37,7 +70,7 @@ try {
     $ExtractedFolder = Get-ChildItem -Path $env:TEMP -Directory | Where-Object { $_.Name -like "winsdk-*" } | Select-Object -First 1
     if (-not $ExtractedFolder) {
         Write-Error "Failed to locate the extracted WinSDK folder."
-        Exit 1
+        throw "Extraction error: Folder not found."
     }
 
     # Move extracted files to InstallDir
@@ -59,5 +92,40 @@ try {
     Write-Host "Please close and reopen your command prompt or PowerShell to start using the 'winsdk' command."
 } catch {
     Write-Error "An error occurred during the installation: $_"
+    Cleanup-WinSDKInstallation -InstallDir $InstallDir -TempZip $TempZip
     Exit 1
+}
+
+
+function Cleanup-WinSDKInstallation {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$InstallDir,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TempZip
+    )
+
+    Write-Host "Cleaning up temporary files and partially installed directories..."
+    try {
+        # Remove the temporary zip file
+        if (Test-Path $TempZip) {
+            Remove-Item $TempZip -Force
+            Write-Host "Removed temporary zip file: $TempZip"
+        }
+
+        # Remove extracted temporary directories
+        if (Test-Path "$env:TEMP\winsdk-*") {
+            Remove-Item -Path "$env:TEMP\winsdk-*" -Recurse -Force
+            Write-Host "Removed temporary extracted directories."
+        }
+
+        # Remove partially installed directory
+        if (Test-Path $InstallDir) {
+            Remove-Item -Recurse -Force -Path $InstallDir
+            Write-Host "Removed partially installed directory: $InstallDir"
+        }
+    } catch {
+        Write-Warning "An error occurred during cleanup: $_"
+    }
 }
