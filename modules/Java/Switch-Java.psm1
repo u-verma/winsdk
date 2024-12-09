@@ -7,11 +7,33 @@ function Switch-Java {
     # Determine the installation directory for Java
     $JavaInstallDir = Get-InstallDirectory -SDKName 'Java'
     $JavaVersionDir = "$JavaInstallDir\jdk-$Version"
+    # Determine SDKPath from WINSDK_HOME environment variable
+    $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", $Scope)
+
+    if (-not $SDKPath) {
+        Write-Warning "WINSDK_HOME is not set for $Scope. Skipping SDK removal for $Scope."
+        continue
+    }
+
 
     if (-not (Test-Path $JavaVersionDir)) {
         Write-Error "Java version $Version is not installed."
         return
     }
+
+
+    # Import the Remove-SDKEnvironment module dynamically
+    $RemoveEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Remove-SDKEnvironment.psm1"
+    $SetEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Set-SDKEnvironment.psm1"
+    if (Test-Path $RemoveEnvironmentModulePath and Test-Path $SetEnvironmentModulePath) {
+        Import-Module $RemoveEnvironmentModulePath -Force
+        Import-Module $SetEnvironmentModulePath -Force
+    }
+    else {
+        Write-Warning "Remove Or set -SDKEnvironment module not found. Skipping environment cleanup for $Scope."
+        continue
+    }
+
 
     try {
         Write-Host "Switching to Java version $Version..."
