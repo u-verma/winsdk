@@ -1,4 +1,4 @@
-function List-Java {
+function Show-AvailableJava {
     $AvailableVersions = Get-AvailableJavaVersions
 
     if ($AvailableVersions.Count -eq 0) {

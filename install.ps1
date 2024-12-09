@@ -64,12 +64,12 @@ try {
     Write-Host "Please close and reopen your command prompt or PowerShell to start using the 'winsdk' command."
 } catch {
     Write-Error "An error occurred during the installation: $_"
-    Cleanup-WinSDKInstallation -InstallDir $InstallDir -TempZip $TempZip
+    Unpublish-WinSDKInstallation -InstallDir $InstallDir -TempZip $TempZip
     Exit 1
 }
 
 # Function to clean up temporary files and directories
-function Cleanup-WinSDKInstallation {
+function Unpublish-WinSDKInstallation {
     param (
         [Parameter(Mandatory = $true)]
         [string]$InstallDir,
