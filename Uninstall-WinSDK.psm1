@@ -46,7 +46,8 @@ function Uninstall-WinSDK {
                 Write-Host "Removing files from $SDKPath for $Scope..."
                 Remove-Item -Recurse -Force -Path $SDKPath
                 Write-Host "Files removed successfully for $Scope."
-            } else {
+            }
+            else {
                 Write-Warning "WinSDK directory does not exist at $SDKPath for $Scope."
             }
 
@@ -63,7 +64,8 @@ function Uninstall-WinSDK {
                 $NewPath = ($PathEntries | Select-Object -Unique) -join ';'
                 [Environment]::SetEnvironmentVariable("Path", $NewPath, $Scope)
                 Write-Host "PATH cleaned successfully for $Scope."
-            } else {
+            }
+            else {
                 Write-Warning "No PATH entries found for $Scope."
             }
         }
