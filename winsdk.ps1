@@ -40,13 +40,6 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Import-Module "$ScriptDir\modules\Utils\Utils.psm1" -Force
 Import-Module "$ScriptDir\modules\Environment\EnvironmentManager.psm1" -Force
 
-if ($Action.ToLower() -eq 'help') {
-   Import-Module "$ScriptDir\WinSdk\Show-Help.psm1" -Force
-       
-   Show-Help
-    Exit 0
-}
-
 switch ($SDK.ToLower()) {
     'java' {
         Import-Module "$ScriptDir\modules\Java\Install-Java.psm1" -Force
@@ -94,7 +87,11 @@ switch ($SDK.ToLower()) {
     'winsdk' {
         Import-Module "$ScriptDir\WinSdk\Uninstall-WinSDK.psm1" -Force
         Import-Module "$ScriptDir\WinSdk\Update-WinSDK.psm1" -Force
+        Import-Module "$ScriptDir\WinSdk\Show-Help.psm1" -Force
         switch ($Action.ToLower()) {
+            'help' {
+                Show-Help
+            }
             'update' {
                 Update-WinSDK
             }
