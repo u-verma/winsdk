@@ -8,36 +8,15 @@ $InstallDir = "C:\Program Files\WinSDK"
 $RepoZipUrl = "https://github.com/u-verma/winsdk/archive/refs/heads/main.zip"
 $TempZip = "$env:TEMP\winsdk.zip"
 
+# Import the Set-SDKEnvironment module
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+Import-Module "$ScriptDir\modules\Set-SDKEnvironment.psm1" -Force
+
 # Function to check if running as Administrator
 function Test-IsAdministrator {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-# Function to set environment variables
-function Set-EnvironmentVariable {
-    param (
-        [string]$VariableName,
-        [string]$Value,
-        [string]$Scope
-    )
-    switch ($Scope.ToLower()) {
-        "user" {
-            [System.Environment]::SetEnvironmentVariable($VariableName, $Value, [System.EnvironmentVariableTarget]::User)
-        }
-        "machine" {
-            if (-not (Test-IsAdministrator)) {
-                Write-Error "You must run this script as Administrator to modify machine-level environment variables."
-                Exit 1
-            }
-            [System.Environment]::SetEnvironmentVariable($VariableName, $Value, [System.EnvironmentVariableTarget]::Machine)
-        }
-        default {
-            Write-Error "Invalid scope: $Scope. Allowed values are 'User' or 'Machine'."
-            Exit 1
-        }
-    }
 }
 
 try {
@@ -73,30 +52,8 @@ try {
 
     # Configure environment variables
     Write-Host "Configuring environment variables..."
-    # Set WINSDK_HOME for both User and Machine
-    Set-EnvironmentVariable -VariableName "WINSDK_HOME" -Value $InstallDir -Scope "User"
-    Set-EnvironmentVariable -VariableName "WINSDK_HOME" -Value $InstallDir -Scope "Machine"
-
-   # Add InstallDir to PATH for both User and Machine
-foreach ($Scope in @('User', 'Machine')) {
-    $OldPath = [Environment]::GetEnvironmentVariable('Path', $Scope)
-    if (-not $OldPath) {
-        $OldPath = ""
-    }
-
-    Write-Host "old path value: $OldPath"
-
-    # Split Path into individual entries and check for an exact match
-    $PathEntries = $OldPath -split ';' | ForEach-Object { $_.Trim() }
-    if ($PathEntries -notcontains $InstallDir) {
-        $NewPath = ($PathEntries + $InstallDir) -join ';'
-        Set-EnvironmentVariable -VariableName "Path" -Value $NewPath -Scope $Scope
-        Write-Host "Updated PATH for $Scope : ${NewPath}"
-    } else {
-        Write-Host "PATH already contains $InstallDir for $Scope."
-    }
-}
-
+    Set-SDKEnvironment -SDKName "winsdk" -SDKPath $InstallDir -Scope "User"
+    Set-SDKEnvironment -SDKName "winsdk" -SDKPath $InstallDir -Scope "Machine"
 
     Write-Host "WinSDK has been installed successfully."
     Write-Host "Please close and reopen your command prompt or PowerShell to start using the 'winsdk' command."

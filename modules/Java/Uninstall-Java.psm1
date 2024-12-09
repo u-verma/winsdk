@@ -4,6 +4,7 @@ function Uninstall-Java {
         [string]$Version
     )
 
+    # Determine the installation directory for Java
     $JavaInstallDir = Get-InstallDirectory -SDKName 'Java'
     $JavaVersionDir = "$JavaInstallDir\jdk-$Version"
 
@@ -12,23 +13,26 @@ function Uninstall-Java {
         return
     }
 
-    # Check if this version is currently in use
-    $CurrentJavaHome = [Environment]::GetEnvironmentVariable('JAVA_HOME', 'Machine')
-    if ($CurrentJavaHome -eq $JavaVersionDir) {
-        Write-Host "Java version $Version is currently in use."
-        # Switch to another version if available
-        $AvailableVersions = Get-ChildItem -Path $JavaInstallDir -Directory | Where-Object { $_.Name -ne "jdk-$Version" } | ForEach-Object { $_.Name -replace 'jdk-', '' }
-        if ($AvailableVersions.Count -gt 0) {
-            Write-Host "Switching to Java version $($AvailableVersions[0])..."
-            Switch-Java -Version $AvailableVersions[0]
+    try {
+        Write-Host "Uninstalling Java version $Version..."
+
+        # Remove the Java installation directory
+        Remove-Item -Path $JavaVersionDir -Recurse -Force
+        Write-Host "Removed Java version $Version directory: $JavaVersionDir"
+
+        # Check if this version is the active version
+        $CurrentJavaHome = [Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
+        if ($CurrentJavaHome -eq $JavaVersionDir) {
+            # Clean up JAVA_HOME and PATH
+            Remove-SDKEnvironment -SDKName "java" -Scope "User"
+            Remove-SDKEnvironment -SDKName "java" -Scope "Machine"
+            Write-Host "Cleaned up JAVA_HOME and PATH for Java version $Version."
         } else {
-            Write-Error "No other Java versions are installed. Cannot uninstall the current version."
-            return
+            Write-Host "Java version $Version was not set as the current version. No environment cleanup needed."
         }
+
+        Write-Host "Java version $Version uninstalled successfully."
+    } catch {
+        Write-Error "An error occurred while uninstalling Java version $Version : $_"
     }
-
-    # Remove the Java version
-    Remove-Item -Recurse -Force $JavaVersionDir
-
-    Write-Host "Java version $Version has been uninstalled."
 }

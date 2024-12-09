@@ -7,7 +7,6 @@ Removes all files related to WinSDK and cleans up environment variables at both 
 
 .PARAMETER Force
 Skips the confirmation prompt if specified.
-
 #>
 
 function Uninstall-WinSDK {
@@ -33,6 +32,9 @@ function Uninstall-WinSDK {
         foreach ($Scope in $Scopes) {
             Write-Host "Processing scope: $Scope"
 
+            # Remove WINSDK_HOME environment variable and PATH entries
+            Remove-SDKEnvironment -SDKName "winsdk" -Scope $Scope
+
             # Path where WinSDK is installed
             $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", $Scope)
 
@@ -46,27 +48,8 @@ function Uninstall-WinSDK {
                 Write-Host "Removing files from $SDKPath for $Scope..."
                 Remove-Item -Recurse -Force -Path $SDKPath
                 Write-Host "Files removed successfully for $Scope."
-            }
-            else {
+            } else {
                 Write-Warning "WinSDK directory does not exist at $SDKPath for $Scope."
-            }
-
-            # Remove WINSDK_HOME environment variable
-            Write-Host "Removing WINSDK_HOME environment variable for $Scope..."
-            [Environment]::SetEnvironmentVariable("WINSDK_HOME", $null, $Scope)
-
-            # Clean up PATH environment variable
-            Write-Host "Cleaning up PATH environment variable for $Scope..."
-            $OldPath = [Environment]::GetEnvironmentVariable("Path", $Scope)
-            if ($OldPath) {
-                # Remove SDKPath from PATH
-                $PathEntries = $OldPath -split ';' | Where-Object { $_.Trim() -ne $SDKPath }
-                $NewPath = ($PathEntries | Select-Object -Unique) -join ';'
-                [Environment]::SetEnvironmentVariable("Path", $NewPath, $Scope)
-                Write-Host "PATH cleaned successfully for $Scope."
-            }
-            else {
-                Write-Warning "No PATH entries found for $Scope."
             }
         }
 
