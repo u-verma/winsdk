@@ -3,10 +3,10 @@
 WinSDK - A tool to manage SDKs on Windows.
 
 .DESCRIPTION
-Provides commands to install, use, list, current, and uninstall SDKs, including self-uninstallation.
+Provides commands to install, use, list, current, and uninstall SDKs, including self-uninstallation and updates.
 
 .PARAMETER Action
-The action to perform: install, use, list, current, uninstall.
+The action to perform: install, use, list, current, uninstall, update.
 
 .PARAMETER SDK
 The SDK to manage (e.g., java, winsdk).
@@ -20,25 +20,33 @@ winsdk install java 17
 .EXAMPLE
 winsdk uninstall winsdk
 
+.EXAMPLE
+winsdk --help
+Displays available commands and their descriptions.
 #>
 
-[CmdletBinding()]
+# Import utility modules
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+Import-Module "$ScriptDir\modules\Utils\Utils.psm1" -Force
+Import-Module "$ScriptDir\modules\Environment\EnvironmentManager.psm1" -Force
+
+# Dispatcher logic
 param (
     [Parameter(Position = 0, Mandatory = $true)]
-    [ValidateSet('install', 'use', 'list', 'current', 'uninstall', 'update')]
+    [ValidateSet('install', 'use', 'list', 'current', 'uninstall', 'update', '--help')]
     [string]$Action,
 
-    [Parameter(Position = 1, Mandatory = $true)]
+    [Parameter(Position = 1)]
     [string]$SDK,
 
     [Parameter(Position = 2)]
     [string]$Version
 )
 
-# Import modules
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$ScriptDir\modules\Utils\Utils.psm1" -Force
-Import-Module "$ScriptDir\modules\Environment\EnvironmentManager.psm1" -Force
+if ($Action -eq '--help') {
+    Show-Help
+    Exit 0
+}
 
 switch ($SDK.ToLower()) {
     'java' {
@@ -85,14 +93,12 @@ switch ($SDK.ToLower()) {
         }
     }
     'winsdk' {
-        Import-Module "$ScriptDir\Uninstall-WinSDK.psm1" -Force
+        Import-Module "$ScriptDir\modules\WinSDK\Uninstall-WinSDK.psm1" -Force
+        Import-Module "$ScriptDir\modules\WinSDK\Update-WinSDK.psm1" -Force
+
         switch ($Action.ToLower()) {
             'update' {
-                # Perform update by uninstalling and reinstalling
-                Write-Host "Updating WinSDK..."
-                Uninstall-WinSDK
-                Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/u-verma/winsdk/refs/heads/main/install.ps1'))
-                Write-Host "WinSDK has been successfully updated."
+                Update-WinSDK
             }
             'uninstall' {
                 Uninstall-WinSDK
@@ -109,9 +115,21 @@ switch ($SDK.ToLower()) {
     }
 }
 
-# Function to check if running as Administrator
-function Test-IsAdministrator {
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+# Function to show help
+function Show-Help {
+    Write-Host "WinSDK Management Tool" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Available Commands:"
+    Write-Host "  install <sdk> <version>     Installs the specified SDK and version."
+    Write-Host "  use <sdk> <version>         Switches to the specified SDK version."
+    Write-Host "  list <sdk>                  Lists available versions of the SDK."
+    Write-Host "  current <sdk>               Displays the current version of the SDK in use."
+    Write-Host "  uninstall <sdk> <version>   Uninstalls the specified version of the SDK."
+    Write-Host "  update winsdk               Updates WinSDK to the latest version."
+    Write-Host "  --help                      Displays this help message."
+    Write-Host ""
+    Write-Host "Examples:"
+    Write-Host "  winsdk install java 17"
+    Write-Host "  winsdk uninstall winsdk"
+    Write-Host "  winsdk --help"
 }
