@@ -33,10 +33,10 @@ function Uninstall-WinSDK {
             Write-Host "Processing scope: $Scope"
 
             # Determine SDKPath from WINSDK_HOME environment variable
-            $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", "Machine")
+            $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", $Scope)
 
             if (-not $SDKPath) {
-                Write-Warning "WINSDK_HOME is not set for Machine. Skipping SDK removal for Machine"
+                Write-Warning "WINSDK_HOME is not set for $Scope. Skipping SDK removal for $Scope"
                 continue
             }
 
