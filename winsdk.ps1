@@ -91,7 +91,7 @@ switch ($SDK.ToLower()) {
                 # Perform update by uninstalling and reinstalling
                 Write-Host "Updating WinSDK..."
                 Uninstall-WinSDK
-                Invoke-Expression((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/u-verma/winsdk/refs/heads/main/install.ps1'))
+                Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/u-verma/winsdk/refs/heads/main/install.ps1'))
                 Write-Host "WinSDK has been successfully updated."
             }
             'uninstall' {
