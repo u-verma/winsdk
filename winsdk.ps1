@@ -38,7 +38,6 @@ param (
 # Import modules
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Import-Module "$ScriptDir\modules\Utils\Utils.psm1" -Force
-Import-Module "$ScriptDir\modules\Environment\EnvironmentManager.psm1" -Force
 
 switch ($SDK.ToLower()) {
     'java' {
