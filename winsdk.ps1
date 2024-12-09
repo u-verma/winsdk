@@ -25,7 +25,7 @@ winsdk uninstall winsdk
 [CmdletBinding()]
 param (
     [Parameter(Position = 0, Mandatory = $true)]
-    [ValidateSet('install', 'use', 'list', 'current', 'uninstall')]
+    [ValidateSet('install', 'use', 'list', 'current', 'uninstall', 'update')]
     [string]$Action,
 
     [Parameter(Position = 1, Mandatory = $true)]
