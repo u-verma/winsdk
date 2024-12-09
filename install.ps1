@@ -84,9 +84,12 @@ foreach ($Scope in @('User', 'Machine')) {
         $OldPath = ""
     }
 
-    # Add InstallDir to Path if not already present
-    if ($OldPath -notlike "*$InstallDir*") {
-        $NewPath = ($OldPath -split ';' + $InstallDir) -join ';'
+    Write-Host "old path value: $OldPath"
+
+    # Split Path into individual entries and check for an exact match
+    $PathEntries = $OldPath -split ';' | ForEach-Object { $_.Trim() }
+    if ($PathEntries -notcontains $InstallDir) {
+        $NewPath = ($PathEntries + $InstallDir) -join ';'
         Set-EnvironmentVariable -VariableName "Path" -Value $NewPath -Scope $Scope
         Write-Host "Updated PATH for $Scope : ${NewPath}"
     } else {
