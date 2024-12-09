@@ -10,7 +10,7 @@ $TempZip = "$env:TEMP\winsdk.zip"
 
 # Import the Set-SDKEnvironment module
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$ScriptDir\modules\Set-SDKEnvironment.psm1" -Force
+Import-Module "$ScriptDir\modules\Environment\Set-SDKEnvironment.psm1" -Force
 
 # Function to check if running as Administrator
 function Test-IsAdministrator {
