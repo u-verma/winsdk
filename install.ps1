@@ -8,6 +8,13 @@ $InstallDir = "C:\Program Files\WinSDK"
 $RepoZipUrl = "https://github.com/u-verma/winsdk/archive/refs/heads/main.zip"
 $TempZip = "$env:TEMP\winsdk.zip"
 
+# Function to check if running as Administrator
+function Test-IsAdministrator {
+    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
 # Function to set environment variables
 function Set-EnvironmentVariable {
     param (
@@ -20,6 +27,10 @@ function Set-EnvironmentVariable {
             [System.Environment]::SetEnvironmentVariable($VariableName, $Value, [System.EnvironmentVariableTarget]::User)
         }
         "machine" {
+            if (-not (Test-IsAdministrator)) {
+                Write-Error "You must run this script as Administrator to modify machine-level environment variables."
+                Exit 1
+            }
             [System.Environment]::SetEnvironmentVariable($VariableName, $Value, [System.EnvironmentVariableTarget]::Machine)
         }
         default {
@@ -30,6 +41,11 @@ function Set-EnvironmentVariable {
 }
 
 try {
+    # Check for admin privileges
+    if (-not (Test-IsAdministrator)) {
+        Write-Warning "It's recommended to run this script as Administrator to modify machine-level settings."
+    }
+
     # Download the repository
     Write-Host "Downloading WinSDK..."
     Invoke-WebRequest -Uri $RepoZipUrl -OutFile $TempZip -UseBasicParsing
@@ -67,9 +83,14 @@ try {
         if (-not $OldPath) {
             $OldPath = ""
         }
+
+        # Add InstallDir to Path if not already present
         if ($OldPath -notlike "*$InstallDir*") {
             $NewPath = ($OldPath -split ';' + $InstallDir) -join ';'
             Set-EnvironmentVariable -VariableName "Path" -Value $NewPath -Scope $Scope
+            Write-Host "Updated PATH for $Scope: $NewPath"
+        } else {
+            Write-Host "PATH already contains $InstallDir for $Scope."
         }
     }
 
