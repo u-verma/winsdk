@@ -11,7 +11,7 @@ Skips the confirmation prompt if specified.
 
 # Import modules
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$ScriptDir\modules\Environment\Remove-SDKEnvironment.psm1" -Force
+Import-Module "$ScriptDir\../\Environment\Remove-SDKEnvironment.psm1" -Force
 
 function Uninstall-WinSDK {
     [CmdletBinding()]
