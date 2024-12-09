@@ -85,9 +85,9 @@ switch ($SDK.ToLower()) {
         }
     }
     'winsdk' {
-        Import-Module "$ScriptDir\WinSdk\Uninstall-WinSDK.psm1" -Force
-        Import-Module "$ScriptDir\WinSdk\Update-WinSDK.psm1" -Force
-        Import-Module "$ScriptDir\WinSdk\Show-Help.psm1" -Force
+        Import-Module "$ScriptDir\modules\WinSdk\Uninstall-WinSDK.psm1" -Force
+        Import-Module "$ScriptDir\modules\WinSdk\Update-WinSDK.psm1" -Force
+        Import-Module "$ScriptDir\modules\WinSdk\Show-Help.psm1" -Force
         switch ($Action.ToLower()) {
             'help' {
                 Show-Help
