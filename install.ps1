@@ -8,6 +8,27 @@ $InstallDir = "C:\Program Files\WinSDK"
 $RepoZipUrl = "https://github.com/u-verma/winsdk/archive/refs/heads/main.zip"
 $TempZip = "$env:TEMP\winsdk.zip"
 
+# Function to set environment variables
+function Set-EnvironmentVariable {
+    param (
+        [string]$VariableName,
+        [string]$Value,
+        [string]$Scope
+    )
+    switch ($Scope.ToLower()) {
+        "user" {
+            [System.Environment]::SetEnvironmentVariable($VariableName, $Value, [System.EnvironmentVariableTarget]::User)
+        }
+        "machine" {
+            [System.Environment]::SetEnvironmentVariable($VariableName, $Value, [System.EnvironmentVariableTarget]::Machine)
+        }
+        default {
+            Write-Error "Invalid scope: $Scope. Allowed values are 'User' or 'Machine'."
+            Exit 1
+        }
+    }
+}
+
 try {
     # Download the repository
     Write-Host "Downloading WinSDK..."
@@ -37,8 +58,8 @@ try {
     # Configure environment variables
     Write-Host "Configuring environment variables..."
     # Set WINSDK_HOME for both User and Machine
-    [Environment]::SetEnvironmentVariable('WINSDK_HOME', $InstallDir, 'User')
-    [Environment]::SetEnvironmentVariable('WINSDK_HOME', $InstallDir, 'Machine')
+    Set-EnvironmentVariable -VariableName "WINSDK_HOME" -Value $InstallDir -Scope "User"
+    Set-EnvironmentVariable -VariableName "WINSDK_HOME" -Value $InstallDir -Scope "Machine"
 
     # Add InstallDir to PATH for both User and Machine
     foreach ($Scope in @('User', 'Machine')) {
@@ -48,7 +69,7 @@ try {
         }
         if ($OldPath -notlike "*$InstallDir*") {
             $NewPath = ($OldPath -split ';' + $InstallDir) -join ';'
-            [Environment]::SetEnvironmentVariable('Path', $NewPath, $Scope)
+            Set-EnvironmentVariable -VariableName "Path" -Value $NewPath -Scope $Scope
         }
     }
 
