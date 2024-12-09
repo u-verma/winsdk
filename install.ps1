@@ -8,48 +8,11 @@ $InstallDir = "C:\Program Files\WinSDK"
 $RepoZipUrl = "https://github.com/u-verma/winsdk/archive/refs/heads/main.zip"
 $TempZip = "$env:TEMP\winsdk.zip"
 
-# Import the Set-SDKEnvironment module
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Import-Module "$ScriptDir\modules\Environment\Set-SDKEnvironment.psm1" -Force
-
 # Function to check if running as Administrator
 function Test-IsAdministrator {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-# Function to clean up temporary files and directories
-function Cleanup-WinSDKInstallation {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$InstallDir,
-        [Parameter(Mandatory = $true)]
-        [string]$TempZip
-    )
-
-    Write-Host "Cleaning up temporary files and partially installed directories..."
-    try {
-        # Remove the temporary zip file
-        if (Test-Path $TempZip) {
-            Remove-Item $TempZip -Force
-            Write-Host "Removed temporary zip file: $TempZip"
-        }
-
-        # Remove extracted temporary directories
-        if (Test-Path "$env:TEMP\winsdk-*") {
-            Remove-Item -Path "$env:TEMP\winsdk-*" -Recurse -Force
-            Write-Host "Removed temporary extracted directories."
-        }
-
-        # Remove partially installed directory
-        if (Test-Path $InstallDir) {
-            Remove-Item -Recurse -Force -Path $InstallDir
-            Write-Host "Removed partially installed directory: $InstallDir"
-        }
-    } catch {
-        Write-Warning "An error occurred during cleanup: $_"
-    }
 }
 
 try {
@@ -83,6 +46,15 @@ try {
     Remove-Item $TempZip -Force
     Remove-Item -Path "$env:TEMP\winsdk-*" -Recurse -Force
 
+    # Import the Set-SDKEnvironment module from the installed directory
+    $SDKEnvironmentModule = Join-Path $InstallDir "modules\Environment\Set-SDKEnvironment.psm1"
+    if (Test-Path $SDKEnvironmentModule) {
+        Import-Module $SDKEnvironmentModule -Force
+    } else {
+        Write-Error "Set-SDKEnvironment module not found in $SDKEnvironmentModule."
+        throw "Installation error: Required module missing."
+    }
+
     # Configure environment variables
     Write-Host "Configuring environment variables..."
     Set-SDKEnvironment -SDKName "winsdk" -SDKPath $InstallDir -Scope "User"
@@ -96,7 +68,7 @@ try {
     Exit 1
 }
 
-
+# Function to clean up temporary files and directories
 function Cleanup-WinSDKInstallation {
     param (
         [Parameter(Mandatory = $true)]
