@@ -4,7 +4,7 @@ function Get-InstallDirectory {
         [string]$SDKName
     )
 
-    $InstallRoot = "C:\Program Files\WinSDK"
+    $InstallRoot = "C:\Program Files\WinSDK\InstalledSDK\Java"
     $SDKInstallDir = "$InstallRoot\$SDKName"
 
     # Create directories if they don't exist

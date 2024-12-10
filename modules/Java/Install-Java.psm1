@@ -43,7 +43,7 @@ function Install-Java {
     Write-Host "Downloading JDK from: $ApiUrl"
 
     # Prepare installation directory
-    $InstallDirRoot = "$env:ProgramFiles\WinSDK\Java"
+    $InstallDirRoot = "$env:ProgramFiles\WinSDK\InstalledSDK\Java"
     if (-not (Test-Path $InstallDirRoot)) {
         New-Item -ItemType Directory -Path $InstallDirRoot | Out-Null
     }
