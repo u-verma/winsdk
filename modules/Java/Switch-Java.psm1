@@ -25,15 +25,17 @@ function Switch-Java {
     # Import the Remove-SDKEnvironment module dynamically
     $RemoveEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Remove-SDKEnvironment.psm1"
     $SetEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Set-SDKEnvironment.psm1"
-    if (Test-Path $RemoveEnvironmentModulePath -and Test-Path $SetEnvironmentModulePath) {
+    if (Test-Path $RemoveEnvironmentModulePath) {
         Import-Module $RemoveEnvironmentModulePath -Force
+    } else {
+        Write-Warning "Remove-SDKEnvironment module not found: $RemoveEnvironmentModulePath"
+    }
+    
+    if (Test-Path $SetEnvironmentModulePath) {
         Import-Module $SetEnvironmentModulePath -Force
+    } else {
+        Write-Warning "Set-SDKEnvironment module not found: $SetEnvironmentModulePath"
     }
-    else {
-        Write-Warning "Remove Or set -SDKEnvironment module not found. Skipping environment cleanup for $Scope."
-        continue
-    }
-
 
     try {
         Write-Host "Switching to Java version $Version..."-
