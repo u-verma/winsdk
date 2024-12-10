@@ -41,7 +41,7 @@ Available Java Versions
         }
 
         # Check if this version is installed
-        $IsInstalled = $InstalledVersions -contains $version.Version
+        $IsInstalled = $InstalledVersions -contains $version.Identifier
         $InstallMarker = if ($IsInstalled) { " <<".PadRight(10) } else { "".PadRight(10) }
 
         # Format the output line
