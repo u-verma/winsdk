@@ -25,7 +25,7 @@ function Switch-Java {
     # Import the Remove-SDKEnvironment module dynamically
     $RemoveEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Remove-SDKEnvironment.psm1"
     $SetEnvironmentModulePath = Join-Path $SDKPath "modules\Environment\Set-SDKEnvironment.psm1"
-    if (Test-Path $RemoveEnvironmentModulePath and Test-Path $SetEnvironmentModulePath) {
+    if (Test-Path $RemoveEnvironmentModulePath -and Test-Path $SetEnvironmentModulePath) {
         Import-Module $RemoveEnvironmentModulePath -Force
         Import-Module $SetEnvironmentModulePath -Force
     }
@@ -36,7 +36,7 @@ function Switch-Java {
 
 
     try {
-        Write-Host "Switching to Java version $Version..."
+        Write-Host "Switching to Java version $Version..."-
 
         # Remove old JAVA_HOME and PATH entries
         Remove-SDKEnvironment -SDKName "java" -Scope "User"
