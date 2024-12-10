@@ -66,7 +66,11 @@ Available Java Versions
     Write-Host "==============================================================================="
 
     Write-Host ""
-    Write-Host "Use the Identifier for installation:"
+    Write-Host "Use the Identifier for installation: The green marker indicates already installed versions."
     Write-Host ""
-    Write-Host "    winsdk install java <Identifier>"
+    Write-Host "    winsdk install java <Identifier>" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "if want to switch to a different version of Installed Version, use the following command:"
+    Write-Host ""
+    Write-Host "    winsdk use java <Identifier>" -ForegroundColor Green
 }
