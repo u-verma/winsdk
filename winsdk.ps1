@@ -44,7 +44,7 @@ switch ($SDK.ToLower()) {
         Import-Module "$ScriptDir\modules\Java\Install-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Switch-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Show-AvailableJava.psm1" -Force
-        Import-Module "$ScriptDir\modules\Java\Current-JavaVersion.psm1" -Force
+        Import-Module "$ScriptDir\modules\Java\Show-CurrentActiveJavaVersion.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Uninstall-Java.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Get-JavaDownloadUrl.psm1" -Force
         Import-Module "$ScriptDir\modules\Java\Get-AvailableJavaVersions.psm1" -Force
