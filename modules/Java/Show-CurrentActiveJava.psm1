@@ -1,4 +1,4 @@
-function Show-CurrentActiveJavaVersion {
+function Show-CurrentActiveJava {
     $JavaHome = [Environment]::GetEnvironmentVariable('JAVA_HOME', 'Machine')
 
     if (-not $JavaHome -or -not (Test-Path $JavaHome)) {
