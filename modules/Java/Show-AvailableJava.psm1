@@ -2,6 +2,16 @@ function Show-AvailableJava {
     # Path to the installed Java directory
     $JavaInstallDir = "C:\Program Files\WinSDK\InstalledSDK\Java"
 
+    # Determine SDKPath from WINSDK_HOME environment variable
+    $SDKPath = [Environment]::GetEnvironmentVariable("WINSDK_HOME", "Machine")
+    if (-not $SDKPath) {
+        Write-Warning "WINSDK_HOME is not set for Machine. Skipping environment updates for Machine."
+        return
+    }
+
+    $GetAvailableJavaVersionsPath = Join-Path $SDKPath "modules\java\Get-AvailableJavaVersions.psm1"
+    Import-Module $GetAvailableJavaVersionsPath -Force
+
     # Get installed Java versions
     $InstalledVersions = @()
     if (Test-Path $JavaInstallDir) {
