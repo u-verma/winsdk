@@ -1,6 +1,3 @@
-# Import necessary variables and functions
-. (Join-Path $PSScriptRoot -ChildPath "./Get-AvailableJavaVersions.psm1")
-
 function Show-AvailableJava {
     # Path to the installed Java directory
     $JavaInstallDir = "C:\Program Files\WinSDK\InstalledSDK\Java"
